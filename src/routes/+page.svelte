@@ -4,6 +4,10 @@
 	const boardSize = 2;
 </script>
 
+<svelte:head>
+	<title>Timer</title>
+</svelte:head>
+
 <div class="app-background">
 	<div class="container">
 		{#each Array(boardSize ** 2) as _, i}
@@ -24,7 +28,7 @@
 	.container {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.2rem;
+		gap: 3px;
 		width: 100vw;
 		max-width: 1310px;
 		height: 100vh;
