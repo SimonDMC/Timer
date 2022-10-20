@@ -12,8 +12,16 @@ export const getFormattedSecondsFromMs = (ms: number): string => {
  * @returns {string} converted minutes
  */
 export const getFormattedMinutesFromMs = (ms: number, leadingZero: boolean): string => {
-	const minutes = Math.floor(ms / 1000 / 60);
+	const minutes = Math.floor(ms / 1000 / 60) % 60;
 	return leadingZero ? formatTimeWithLeadingZero(minutes) : minutes.toString();
+};
+
+/**
+ * @param {number} ms - milliseconds to convert
+ * @returns {string} converted hours
+ */
+export const getHoursFromMs = (ms: number): string => {
+	return `${Math.floor(ms / 1000 / 60 / 60)}`;
 };
 
 /**

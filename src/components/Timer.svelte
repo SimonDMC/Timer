@@ -1,7 +1,11 @@
 <script lang="ts">
-	import Button from './Button.svelte';
+	import Button from './TimerButton.svelte';
 	import { onMount } from 'svelte';
-	import { getFormattedSecondsFromMs, getFormattedMinutesFromMs } from '../util/numberFormat';
+	import {
+		getFormattedSecondsFromMs,
+		getFormattedMinutesFromMs,
+		getHoursFromMs
+	} from '../util/numberFormat';
 
 	export let downScale: number = 1;
 	export let timerIndex: number;
@@ -41,6 +45,8 @@
 	let timeInMs: number = 0;
 	let seconds: string = '00';
 	let minutes: string = '0';
+	let hours: string = '0';
+	let displayHours: boolean = false;
 	let latestSavedTime: Date | undefined = undefined;
 
 	// when component loads for the first time
@@ -93,9 +99,12 @@
 	}
 
 	function updateTimer() {
+		// figure out whether to display hours
+		displayHours = timeInMs >= 3600000;
 		// update seconds and minutes
 		seconds = getFormattedSecondsFromMs(timeInMs);
-		minutes = getFormattedMinutesFromMs(timeInMs, false);
+		minutes = getFormattedMinutesFromMs(timeInMs, displayHours);
+		hours = getHoursFromMs(timeInMs);
 
 		saveToLocalStorage();
 	}
@@ -131,7 +140,11 @@
 
 <div class="background" style={sizeStyling}>
 	<h1>Default Timer</h1>
-	<p>{minutes}:{seconds}</p>
+	<div class="wrapper">
+		<p style={displayHours ? 'font-size: min(18em, 12vw)' : 'font-size: 20.5em'}>
+			{displayHours ? `${hours}:` : ''}{minutes}:{seconds}
+		</p>
+	</div>
 	<ul>
 		<li><Button type={running ? 'pause' : 'play'} on:click={toggleTimer} /></li>
 		<li><Button type="stop" on:click={resetTimer} /></li>
@@ -156,9 +169,14 @@
 
 	p {
 		color: white;
-		font-size: 20.5em;
 		font-family: 'Roboto', sans-serif;
 		font-weight: 200;
+	}
+
+	.wrapper {
+		height: 24.6em;
+		display: flex;
+		align-items: center;
 	}
 
 	ul {
