@@ -11,7 +11,7 @@
 <div class="app-background">
 	<div class="container">
 		{#each Array(boardSize ** 2) as _, i}
-			<Timer downScale={boardSize} />
+			<Timer downScale={boardSize} timerIndex={i} />
 		{/each}
 	</div>
 </div>
@@ -23,6 +23,8 @@
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
+		/* flexible font size */
+		font-size: calc(1.8vmin);
 	}
 
 	.container {
