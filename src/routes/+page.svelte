@@ -1,7 +1,12 @@
 <script lang="ts">
 	import Timer from '../components/Timer.svelte';
+	import ButtonRow from '../components/ButtonRow.svelte';
 
-	const boardSize = 2;
+	let boardSize = 1;
+
+	function changeSize(event: CustomEvent) {
+		boardSize = event.detail[0];
+	}
 </script>
 
 <svelte:head>
@@ -10,9 +15,14 @@
 
 <div class="app-background">
 	<div class="container">
-		{#each Array(boardSize ** 2) as _, i}
-			<Timer downScale={boardSize} timerIndex={i} />
-		{/each}
+		{#key boardSize}
+			{#each Array(boardSize) as _, i}
+				{#each Array(boardSize) as _, j}
+					<Timer downScale={boardSize} timerIndex={i * boardSize + j} shiftDown={i == 0} />
+				{/each}
+			{/each}
+		{/key}
+		<ButtonRow buttons="grid" on:changeSize={changeSize} />
 	</div>
 </div>
 
@@ -37,5 +47,6 @@
 		background-color: white;
 		/* fix weird 1px white line */
 		margin-right: 1px;
+		position: relative;
 	}
 </style>

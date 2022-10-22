@@ -9,6 +9,7 @@
 
 	export let downScale: number = 1;
 	export let timerIndex: number;
+	export let shiftDown: boolean = false;
 
 	// size of one timer
 	let timerWidth = `${(1 / downScale) * 100}%`;
@@ -47,6 +48,7 @@
 	let minutes: string = '0';
 	let hours: string = '0';
 	let displayHours: boolean = false;
+	let timerName: string = 'Default Timer';
 	let latestSavedTime: Date | undefined = undefined;
 
 	// when component loads for the first time
@@ -61,6 +63,7 @@
 					timeInMs = saveData.time;
 					running = saveData.isRunning;
 					latestSavedTime = saveData.lastSavedTime ? new Date(saveData.lastSavedTime) : undefined;
+					timerName = saveData.name;
 					console.info(`Loaded timer${timerIndex} from local storage`);
 					console.log(saveData);
 				} catch (e) {
@@ -128,9 +131,25 @@
 		updateTimer();
 	}
 
+	function changeTimerName(e: KeyboardEvent) {
+		// prevent enter
+		if (e.key == 'Enter') {
+			e.preventDefault();
+			return;
+		}
+
+		let target = e.target as HTMLInputElement;
+
+		// wait for input to update
+		setTimeout(() => {
+			timerName = target.innerHTML;
+			saveToLocalStorage();
+		}, 0);
+	}
+
 	function saveToLocalStorage() {
 		// save data to local storage
-		saveData.name = 'Default Timer';
+		saveData.name = timerName;
 		saveData.time = timeInMs;
 		saveData.isRunning = running;
 		saveData.lastSavedTime = latestSavedTime;
@@ -138,8 +157,15 @@
 	}
 </script>
 
-<div class="background" style={sizeStyling}>
-	<h1>Default Timer</h1>
+<div class={`background${shiftDown ? ' shifted' : ''}`} style={sizeStyling}>
+	<h1
+		contenteditable
+		class={shiftDown && downScale == 3 && timerIndex != 1 ? ' shifted' : ''}
+		bind:innerHTML={timerName}
+		on:keydown={(e) => changeTimerName(e)}
+	>
+		{timerName}
+	</h1>
 	<div class="wrapper">
 		<p style={displayHours ? 'font-size: min(18em, 12vw)' : 'font-size: 20.5em'}>
 			{displayHours ? `${hours}:` : ''}{minutes}:{seconds}
@@ -160,11 +186,22 @@
 		flex-direction: column;
 	}
 
+	/* shift everything down if the timer is in the first row */
+	.background.shifted > * {
+		transform: translateY(1.8rem);
+	}
+
+	/* if scale is 3, shift text down even further */
+	h1.shifted {
+		transform: translateY(1.8em) !important;
+	}
+
 	h1 {
 		color: white;
 		font-size: 4.5em;
 		font-family: 'Inter', sans-serif;
 		font-weight: 700;
+		outline: none;
 	}
 
 	p {

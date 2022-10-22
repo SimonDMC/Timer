@@ -26,6 +26,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		transition: background-color 0.15s;
 		/* no mobile selection */
 		-webkit-touch-callout: none;
 		-webkit-user-select: none;
@@ -34,6 +35,10 @@
 		-ms-user-select: none;
 		user-select: none;
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	}
+
+	button:hover {
+		background-color: #35677e;
 	}
 
 	i {
