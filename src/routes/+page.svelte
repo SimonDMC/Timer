@@ -55,6 +55,13 @@
 					console.log('Error loading data from local storage');
 				}
 			}
+		} else {
+			saveData = {
+				size: 1,
+				timers: {}
+			};
+			boardSize = saveData.size;
+			timerData = saveData.timers;
 		}
 		loaded = true;
 	});
@@ -81,6 +88,8 @@
 	}
 
 	function save(event: CustomEvent) {
+		console.log('saving', event.detail);
+
 		const timerIndex: number = event.detail.index;
 		const timer = event.detail.data;
 		timerData[`timer${timerIndex}` as keyof TimerContainer] = timer;
