@@ -6,10 +6,15 @@
 		getFormattedMinutesFromMs,
 		getHoursFromMs
 	} from '../util/numberFormat';
+	import type { TimerData, LocalSave, TimerContainer } from '../routes/+page.svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	export let downScale: number = 1;
 	export let timerIndex: number;
 	export let shiftDown: boolean = false;
+	export let timerData: TimerData;
+
+	const dispatch = createEventDispatcher();
 
 	// size of one timer
 	let timerWidth = `${(1 / downScale) * 100}%`;
@@ -25,14 +30,6 @@
         height: calc(${timerHeight} - ${gap});
     `;
 
-	// timer data interface (god i love ts)
-	interface TimerData {
-		time: number;
-		isRunning: boolean;
-		name: string;
-		lastSavedTime: Date | undefined;
-	}
-
 	let saveData: TimerData = {
 		time: 0,
 		isRunning: false,
@@ -43,6 +40,7 @@
 	/* TIMER LOGIC */
 
 	let running = false;
+	let runOverride = false;
 	let timeInMs: number = 0;
 	let seconds: string = '00';
 	let minutes: string = '0';
@@ -53,29 +51,12 @@
 
 	// when component loads for the first time
 	onMount(() => {
-		// attempt to get data from local storage
-		if (localStorage.getItem(`timer${timerIndex}`)) {
-			let importedData = localStorage.getItem(`timer${timerIndex}`);
-			if (importedData) {
-				saveData = JSON.parse(importedData);
-				try {
-					// try setting all the data to the imported data
-					timeInMs = saveData.time;
-					running = saveData.isRunning;
-					latestSavedTime = saveData.lastSavedTime ? new Date(saveData.lastSavedTime) : undefined;
-					timerName = saveData.name;
-					console.info(`Loaded timer${timerIndex} from local storage`);
-					console.log(saveData);
-				} catch (e) {
-					// if fails, set everything to zero and log error
-					console.error('Error importing timer data', e);
-					timeInMs = 0;
-					running = false;
-					latestSavedTime = undefined;
-				}
-				updateTimer();
-			}
-		}
+		saveData = timerData;
+		timeInMs = saveData.time;
+		running = saveData.isRunning;
+		latestSavedTime = saveData.lastSavedTime ? new Date(saveData.lastSavedTime) : undefined;
+		timerName = saveData.name;
+		updateTimer();
 
 		// start timer incrementer
 		incrementTime();
@@ -86,7 +67,7 @@
 		if (running && latestSavedTime == undefined) {
 			// no time captured yet
 			latestSavedTime = new Date();
-		} else if (running && latestSavedTime != undefined) {
+		} else if (saveData.isRunning && latestSavedTime != undefined) {
 			// get time difference between now and last saved time
 			// this is necessary because the interval is not always 100ms, such as when the tab is inactive or the window is closed
 			let timeElapsed = new Date().getTime() - latestSavedTime.getTime();
@@ -109,18 +90,19 @@
 		minutes = getFormattedMinutesFromMs(timeInMs, displayHours);
 		hours = getHoursFromMs(timeInMs);
 
-		saveToLocalStorage();
+		save();
 	}
 
 	function toggleTimer() {
-		running = !running;
 		if (running) {
-			latestSavedTime = new Date();
-		} else {
 			// invalidate latest saved time as we don't want to keep track while the timer is paused
 			latestSavedTime = undefined;
+			running = false;
+		} else {
+			latestSavedTime = new Date();
+			running = true;
 		}
-		saveToLocalStorage();
+		save();
 	}
 
 	function resetTimer() {
@@ -143,17 +125,20 @@
 		// wait for input to update
 		setTimeout(() => {
 			timerName = target.innerHTML;
-			saveToLocalStorage();
+			save();
 		}, 0);
 	}
 
-	function saveToLocalStorage() {
-		// save data to local storage
+	function save() {
+		// save data
 		saveData.name = timerName;
 		saveData.time = timeInMs;
 		saveData.isRunning = running;
 		saveData.lastSavedTime = latestSavedTime;
-		localStorage.setItem(`timer${timerIndex}`, JSON.stringify(saveData));
+		dispatch('save', {
+			index: timerIndex,
+			data: saveData
+		});
 	}
 </script>
 
