@@ -1,8 +1,10 @@
 <script lang="ts">
 	export let type: string = 'none';
+	export let timerIndex: number = 0;
 </script>
 
-<button on:click>
+<!-- assign id so that it can be targeted by space press -->
+<button on:click id={`timer-button-${timerIndex}`}>
 	{#if type == 'play'}
 		<i class="fa-solid fa-play" />
 	{:else if type == 'pause'}
@@ -39,6 +41,10 @@
 
 	button:hover {
 		background-color: #35677e;
+	}
+
+	button:focus {
+		outline: none;
 	}
 
 	i {

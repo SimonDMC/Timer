@@ -40,7 +40,6 @@
 	/* TIMER LOGIC */
 
 	let running = false;
-	let runOverride = false;
 	let timeInMs: number = 0;
 	let seconds: string = '00';
 	let minutes: string = '0';
@@ -90,7 +89,7 @@
 		minutes = getFormattedMinutesFromMs(timeInMs, displayHours);
 		hours = getHoursFromMs(timeInMs);
 
-		save();
+		save(false);
 	}
 
 	function toggleTimer() {
@@ -102,7 +101,7 @@
 			latestSavedTime = new Date();
 			running = true;
 		}
-		save();
+		save(true);
 	}
 
 	function resetTimer() {
@@ -110,6 +109,7 @@
 		latestSavedTime = undefined;
 		// pause timer
 		running = false;
+		save(true);
 		updateTimer();
 	}
 
@@ -125,11 +125,11 @@
 		// wait for input to update
 		setTimeout(() => {
 			timerName = target.innerHTML;
-			save();
+			save(true);
 		}, 0);
 	}
 
-	function save() {
+	function save(changeSelected: boolean) {
 		// save data
 		saveData.name = timerName;
 		saveData.time = timeInMs;
@@ -137,7 +137,8 @@
 		saveData.lastSavedTime = latestSavedTime;
 		dispatch('save', {
 			index: timerIndex,
-			data: saveData
+			data: saveData,
+			changeSelected: changeSelected
 		});
 	}
 </script>
@@ -157,7 +158,7 @@
 		</p>
 	</div>
 	<ul>
-		<li><Button type={running ? 'pause' : 'play'} on:click={toggleTimer} /></li>
+		<li><Button type={running ? 'pause' : 'play'} {timerIndex} on:click={toggleTimer} /></li>
 		<li><Button type="stop" on:click={resetTimer} /></li>
 	</ul>
 </div>

@@ -21,6 +21,7 @@
 
 	export type LocalSave = {
 		size: number;
+		selected: number;
 		timers: TimerContainer;
 	};
 </script>
@@ -28,14 +29,28 @@
 <script lang="ts">
 	import Timer from '../components/Timer.svelte';
 	import ButtonRow from '../components/ButtonRow.svelte';
+	import { updateTitle } from '../titleManager';
 	import { onMount } from 'svelte';
 
 	let loaded = false;
 	let boardSize = 0;
+	let selected = 0;
 	let timerData: TimerContainer = {};
 	let saveData: LocalSave = {
 		size: 1,
+		selected: 0,
 		timers: {}
+	};
+
+	// make listener global
+	let listener = (event: KeyboardEvent) => {
+		if (event.code === 'Space') {
+			const timerButton = document.getElementById(
+				`timer-button-${saveData.selected}`
+			) as HTMLElement;
+			timerButton.click();
+			event.preventDefault();
+		}
 	};
 
 	onMount(() => {
@@ -51,6 +66,7 @@
 					// try setting all the data to the imported data
 					boardSize = saveData.size;
 					timerData = saveData.timers;
+					selected = saveData.selected;
 				} catch (e) {
 					console.log('Error loading data from local storage');
 				}
@@ -58,12 +74,26 @@
 		} else {
 			saveData = {
 				size: 1,
+				selected: 0,
 				timers: {}
 			};
 			boardSize = saveData.size;
 			timerData = saveData.timers;
+			selected = saveData.selected;
 		}
 		loaded = true;
+
+		// update listener to reflect loaded data
+		listener = (event: KeyboardEvent) => {
+			if (event.code === 'Space') {
+				const timerButton = document.getElementById(
+					`timer-button-${saveData.selected}`
+				) as HTMLElement;
+				timerButton.click();
+				event.preventDefault();
+			}
+		};
+		document.addEventListener('keydown', listener);
 	});
 
 	function getTimerData(timerIndex: number): TimerData {
@@ -84,18 +114,99 @@
 		boardSize = event.detail[0];
 		saveData.size = boardSize;
 
+		// reset selected timer if it is out of bounds
+		if (selected > boardSize ** 2 - 1) {
+			selected = 0;
+			saveData.selected = selected;
+		}
+
 		localStorage.setItem('timer-data', JSON.stringify(saveData));
 	}
 
 	function save(event: CustomEvent) {
-		console.log('saving', event.detail);
-
 		const timerIndex: number = event.detail.index;
 		const timer = event.detail.data;
 		timerData[`timer${timerIndex}` as keyof TimerContainer] = timer;
 		saveData.size = boardSize;
 
+		// only update selected timer if save wasn't caused by tick
+		if (event.detail.changeSelected === true) {
+			selected = timerIndex;
+			saveData.selected = timerIndex;
+
+			// update listener to reflect new selected timer
+			document.removeEventListener('keydown', listener);
+			// pause/resume active timer when space is pressed
+			listener = (event: KeyboardEvent) => {
+				if (event.target != null && (event.target as HTMLElement).isContentEditable) return;
+				if (event.code === 'Space') {
+					const timerButton = document.getElementById(`timer-button-${selected}`) as HTMLElement;
+					timerButton.click();
+					event.preventDefault();
+				}
+			};
+			document.addEventListener('keydown', listener);
+		}
+
+		// update title
+		updateTitle(saveData);
+
+		// save to local
 		localStorage.setItem('timer-data', JSON.stringify(saveData));
+	}
+
+	function importData() {
+		// create file input
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+		input.style.display = 'none';
+		document.body.appendChild(input);
+
+		// add listener to file input
+		input.addEventListener('change', (event) => {
+			const file = (event.target as HTMLInputElement).files?.[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					const importedData = event.target?.result;
+					if (importedData) {
+						try {
+							// try parsing the data
+							saveData = JSON.parse(importedData as string);
+
+							// try setting all the data to the imported data
+							boardSize = saveData.size;
+							timerData = saveData.timers;
+							selected = saveData.selected;
+
+							// save data
+							localStorage.setItem('timer-data', JSON.stringify(saveData));
+						} catch (e) {
+							alert('Error loading data from file. Perhaps the file is corrupted?');
+						}
+					}
+				};
+				reader.readAsText(file);
+			}
+		});
+
+		// trigger file input
+		input.click();
+
+		// remove file input
+		document.body.removeChild(input);
+	}
+
+	function exportData() {
+		const dataStr =
+			'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(saveData, null, 4));
+		const downloadAnchorNode = document.createElement('a');
+		downloadAnchorNode.setAttribute('href', dataStr);
+		downloadAnchorNode.setAttribute('download', 'timer-data.json');
+		document.body.appendChild(downloadAnchorNode); // required for firefox
+		downloadAnchorNode.click();
+		downloadAnchorNode.remove();
 	}
 </script>
 
@@ -120,6 +231,7 @@
 			{/each}
 		{/key}
 		<ButtonRow buttons="grid" on:changeSize={changeSize} />
+		<ButtonRow buttons="data" on:importData={importData} on:exportData={exportData} />
 	</div>
 </div>
 

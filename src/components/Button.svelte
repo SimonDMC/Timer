@@ -35,6 +35,10 @@
 		<i class="fa-solid fa-border-all" />
 	{:else if icon == '9'}
 		<i class="fa-solid fa-table-cells" />
+	{:else if icon == 'import'}
+		<i class="fa-solid fa-file-import" />
+	{:else if icon == 'export'}
+		<i class="fa-solid fa-file-export" />
 	{/if}
 </button>
 
