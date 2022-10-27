@@ -24,6 +24,7 @@
 		justify-content: center;
 		align-items: center;
 		position: absolute;
+		filter: drop-shadow(0 0 0.5em #000000bb);
 	}
 
 	.buttonrow.grid {

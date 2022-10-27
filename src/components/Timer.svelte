@@ -7,6 +7,7 @@
 		getHoursFromMs
 	} from '../util/numberFormat';
 	import type { TimerData } from '../routes/+page.svelte';
+	import { mobile } from '../routes/+page.svelte';
 	import { createEventDispatcher } from 'svelte';
 
 	export let downScale: number = 1;
@@ -16,18 +17,50 @@
 
 	const dispatch = createEventDispatcher();
 
+	// if on mobile, use (1, 1, 2) as width, otherwise (1, 2, 3)
+	const scaleW = mobile ? Math.max(1, downScale - 1) : downScale;
+	const scaleH = downScale;
+
 	// size of one timer
-	let timerWidth = `${(1 / downScale) * 100}%`;
-	let timerHeight = `${(1 / downScale) * 100}%`;
+	let timerWidth = `${(1 / scaleW) * 100}%`;
+	let timerHeight = `${(1 / scaleH) * 100}%`;
 
 	// gap between timers
-	let gap = `${(3 * (downScale - 1)) / downScale}px`;
+	let gapW = `${(3 * (scaleW - 1)) / scaleW}px`;
+	let gapH = `${(3 * (scaleH - 1)) / scaleH}px`;
+
+	// figure out mobile upscale
+	let mobileUpscale = 1;
+	if (mobile) {
+		switch (downScale) {
+			case 1:
+				mobileUpscale = 1;
+				break;
+			case 2:
+				mobileUpscale = 1.9;
+				break;
+			case 3:
+				mobileUpscale = 1.7;
+				break;
+		}
+	}
+
+	// figure out shift down
+	let shiftDownClass = '';
+	if (mobile) {
+		if (downScale == 2 && timerIndex == 0) {
+			shiftDownClass = ' shift-small';
+		}
+		if (downScale == 3 && timerIndex <= 1) {
+			shiftDownClass = ' shift';
+		}
+	}
 
 	// set size and font size of timer element
 	let sizeStyling = `
-        font-size: ${1 / downScale}em;
-        width: calc(${timerWidth} - ${gap});
-        height: calc(${timerHeight} - ${gap});
+        font-size: ${(1 / downScale) * mobileUpscale}em;
+        width: calc(${timerWidth} - ${gapW});
+        height: calc(${timerHeight} - ${gapH});
     `;
 
 	let saveData: TimerData = {
@@ -150,10 +183,13 @@
 	}
 </script>
 
-<div class={`background${shiftDown ? ' shifted' : ''}`} style={sizeStyling}>
+<div
+	class={`background${shiftDown && !mobile ? ' shift' : ''}${shiftDownClass}`}
+	style={sizeStyling}
+>
 	<h1
 		contenteditable
-		class={shiftDown && downScale == 3 && timerIndex != 1 ? ' shifted' : ''}
+		class={shiftDown && scaleW == 3 && timerIndex != 1 ? ' shifted' : ''}
 		bind:innerHTML={timerName}
 		on:keydown={(e) => changeTimerName(e)}
 	>
@@ -180,8 +216,16 @@
 	}
 
 	/* shift everything down if the timer is in the first row */
-	.background.shifted > * {
+	.background.shift > * {
 		transform: translateY(1.8rem);
+	}
+
+	.background.shift-small > * {
+		transform: translateY(1.4rem);
+	}
+
+	.wrapper {
+		pointer-events: none;
 	}
 
 	/* if scale is 3, shift text down even further */

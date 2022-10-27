@@ -32,7 +32,7 @@ function getRunningTimers(data: TimerContainer): number {
 	// get values
 	const values = Object.values(data);
 	// sum running timers and return
-	const running = values.reduce((acc, cur) => {
+	const running = values.reduce((acc: number, cur: any) => {
 		if (cur.isRunning) {
 			return acc + 1;
 		}

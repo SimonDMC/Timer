@@ -48,7 +48,7 @@
 		border: 0.06em solid white;
 		color: white;
 		cursor: pointer;
-		font-size: min(4.3vh, 7.5vw);
+		font-size: min(4.3vh, 8vw);
 		width: 1.8em;
 		height: 1.8em;
 		display: flex;

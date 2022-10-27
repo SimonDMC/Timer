@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
-	export const ssr = false;
+	export let mobile: boolean = false;
+
 	export type TimerData = {
 		time: number;
 		isRunning: boolean;
@@ -54,6 +55,9 @@
 	};
 
 	onMount(() => {
+		// set mobile if screen ratio is < 1
+		mobile = window.innerWidth / window.innerHeight < 1;
+
 		// attempt to get data from local storage
 		if (localStorage.getItem('timer-data')) {
 			let importedData = localStorage.getItem('timer-data');
@@ -253,7 +257,8 @@
 	<div class="container">
 		<div class="loadingblanket" style={loaded ? 'display: none' : ''} />
 		{#key boardSize}
-			{#each Array(boardSize) as _, i}
+			<!-- if on mobile, use (1, 1, 2) as width instead of (1, 2, 3) -->
+			{#each Array(mobile ? Math.max(1, boardSize - 1) : boardSize) as _, i}
 				{#each Array(boardSize) as _, j}
 					<Timer
 						downScale={boardSize}
