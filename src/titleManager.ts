@@ -1,5 +1,6 @@
 import type { LocalSave, TimerContainer, TimerData } from './routes/+page.svelte';
 import { getCompleteTimeFromMs } from './util/numberFormat';
+import { decodeHTML } from './util/stringUtil';
 
 export function updateTitle(data: LocalSave) {
 	switch (getRunningTimers(data.timers)) {
@@ -9,8 +10,9 @@ export function updateTitle(data: LocalSave) {
 		// exactly one running timer
 		case 1: {
 			const timer = getRunningTimer(data.timers);
+
 			if (timer) {
-				document.title = `${getCompleteTimeFromMs(timer.time)} | ${timer.name}`;
+				document.title = `${getCompleteTimeFromMs(timer.time)} | ${decodeHTML(timer.name)}`;
 			}
 			break;
 		}

@@ -120,11 +120,14 @@
 			saveData.selected = selected;
 		}
 
+		saveData.timers = timerData;
+
 		localStorage.setItem('timer-data', JSON.stringify(saveData));
 	}
 
 	function save(event: CustomEvent) {
 		const timerIndex: number = event.detail.index;
+
 		const timer = event.detail.data;
 		timerData[`timer${timerIndex}` as keyof TimerContainer] = timer;
 		saveData.size = boardSize;
@@ -175,16 +178,48 @@
 							// try parsing the data
 							saveData = JSON.parse(importedData as string);
 
+							// check that all values are present
+							if (!saveData.size || saveData.selected === undefined || !saveData.timers) {
+								throw new Error('Missing Values');
+							}
+
+							// check all timers have the correct properties
+							for (const timer in saveData.timers) {
+								const timerData = saveData.timers[timer as keyof TimerContainer] as TimerData;
+								if (
+									timerData.time === undefined ||
+									timerData.isRunning === undefined ||
+									timerData.name === undefined
+								) {
+									throw new Error('Invalid data');
+								}
+							}
+
+							// make sure everything is correct type
+							saveData.size = Number(saveData.size);
+							saveData.selected = Number(saveData.selected);
+							for (const timer in saveData.timers) {
+								const timerData = saveData.timers[timer as keyof TimerContainer] as TimerData;
+								timerData.time = Number(timerData.time);
+								timerData.isRunning = Boolean(timerData.isRunning);
+							}
+
 							// try setting all the data to the imported data
 							boardSize = saveData.size;
 							timerData = saveData.timers;
 							selected = saveData.selected;
-
-							// save data
-							localStorage.setItem('timer-data', JSON.stringify(saveData));
 						} catch (e) {
-							alert('Error loading data from file. Perhaps the file is corrupted?');
+							console.log(e);
+							document.querySelector('.notification')?.classList.add('show');
+							setTimeout(() => {
+								document.querySelector('.notification')?.classList.remove('show');
+							}, 3000);
+							return;
 						}
+
+						// if everything went well, save data
+						localStorage.setItem('timer-data', JSON.stringify(saveData));
+						location.reload();
 					}
 				};
 				reader.readAsText(file);
@@ -232,10 +267,23 @@
 		{/key}
 		<ButtonRow buttons="grid" on:changeSize={changeSize} />
 		<ButtonRow buttons="data" on:importData={importData} on:exportData={exportData} />
+		<p class="notification">Error loading data from file.</p>
 	</div>
 </div>
 
 <style>
+	:global(body, html) {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		overflow-x: hidden;
+		position: relative;
+	}
+
+	:global(body > *) {
+		height: 100%;
+	}
+
 	.app-background {
 		background-color: #23262c;
 		display: flex;
@@ -244,6 +292,7 @@
 		flex-direction: column;
 		/* flexible font size */
 		font-size: calc(1.8vmin);
+		height: 100%;
 	}
 
 	.container {
@@ -252,7 +301,7 @@
 		gap: 3px;
 		width: 100vw;
 		max-width: 1310px;
-		height: 100vh;
+		height: 100%;
 		background-color: white;
 		/* fix weird 1px white line */
 		margin-right: 1px;
@@ -267,5 +316,26 @@
 		height: 100%;
 		background-color: #282c34;
 		pointer-events: none;
+	}
+
+	p.notification {
+		position: absolute;
+		top: 0;
+		opacity: 0;
+		/* center */
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 2.5em;
+		color: white;
+		font-family: 'Inter', sans-serif;
+		font-weight: 600;
+		text-shadow: 0 0 10px #000000bb;
+		pointer-events: none;
+		transition: opacity 0.2s, top 0.2s;
+	}
+
+	:global(p.notification.show) {
+		top: 1em;
+		opacity: 1;
 	}
 </style>

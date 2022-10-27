@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Button from './TimerButton.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import {
 		getFormattedSecondsFromMs,
 		getFormattedMinutesFromMs,
 		getHoursFromMs
 	} from '../util/numberFormat';
-	import type { TimerData, LocalSave, TimerContainer } from '../routes/+page.svelte';
+	import type { TimerData } from '../routes/+page.svelte';
 	import { createEventDispatcher } from 'svelte';
 
 	export let downScale: number = 1;
@@ -47,6 +47,7 @@
 	let displayHours: boolean = false;
 	let timerName: string = 'Default Timer';
 	let latestSavedTime: Date | undefined = undefined;
+	let incrementer: ReturnType<typeof setTimeout>;
 
 	// when component loads for the first time
 	onMount(() => {
@@ -61,6 +62,11 @@
 		incrementTime();
 	});
 
+	// cancel incrementer when component is destroyed
+	onDestroy(() => {
+		clearTimeout(incrementer);
+	});
+
 	// increment time every 100ms
 	function incrementTime() {
 		if (running && latestSavedTime == undefined) {
@@ -70,6 +76,7 @@
 			// get time difference between now and last saved time
 			// this is necessary because the interval is not always 100ms, such as when the tab is inactive or the window is closed
 			let timeElapsed = new Date().getTime() - latestSavedTime.getTime();
+
 			timeInMs += timeElapsed;
 
 			// capture current time
@@ -78,7 +85,7 @@
 			// display and save to localStorage
 			updateTimer();
 		}
-		setTimeout(incrementTime, 100);
+		incrementer = setTimeout(incrementTime, 100);
 	}
 
 	function updateTimer() {
@@ -188,6 +195,10 @@
 		font-family: 'Inter', sans-serif;
 		font-weight: 700;
 		outline: none;
+		width: 10em;
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
 	}
 
 	p {
