@@ -31,16 +31,20 @@
 
 	// figure out mobile upscale
 	let mobileUpscale = 1;
+	let maxVH = 100;
 	if (mobile) {
 		switch (downScale) {
 			case 1:
 				mobileUpscale = 1;
+				maxVH = 2;
 				break;
 			case 2:
 				mobileUpscale = 1.9;
+				maxVH = 0.9;
 				break;
 			case 3:
 				mobileUpscale = 1.7;
+				maxVH = 0.55;
 				break;
 		}
 	}
@@ -58,7 +62,7 @@
 
 	// set size and font size of timer element
 	let sizeStyling = `
-        font-size: ${(1 / downScale) * mobileUpscale}em;
+        font-size: min(${(1 / downScale) * mobileUpscale}em, ${maxVH}vh);
         width: calc(${timerWidth} - ${gapW});
         height: calc(${timerHeight} - ${gapH});
     `;
@@ -216,12 +220,18 @@
 	}
 
 	/* shift everything down if the timer is in the first row */
-	.background.shift > * {
-		transform: translateY(1.8rem);
+	.background.shift > *:not(h1) {
+		transform: translateY(5em);
+	}
+	.background.shift > h1 {
+		transform: translateY(1.4em);
 	}
 
-	.background.shift-small > * {
-		transform: translateY(1.4rem);
+	.background.shift-small > *:not(h1) {
+		transform: translateY(2.8em);
+	}
+	.background.shift-small > h1 {
+		transform: translateY(0.6em);
 	}
 
 	.wrapper {

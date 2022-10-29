@@ -28,7 +28,7 @@
 	}
 </script>
 
-<button on:click style={styling}>
+<button on:click style={styling} aria-label={`Control Button ${icon}`}>
 	{#if icon == '1'}
 		<i class="fa-regular fa-square" />
 	{:else if icon == '4'}

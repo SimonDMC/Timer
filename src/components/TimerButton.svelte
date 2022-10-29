@@ -4,7 +4,11 @@
 </script>
 
 <!-- assign id so that it can be targeted by space press -->
-<button on:click id={`timer-button-${timerIndex}`}>
+<button
+	on:click
+	id={type != 'stop' ? `timer-button-${timerIndex}` : 'timer-stop-button'}
+	aria-label={`Timer Button ${type}`}
+>
 	{#if type == 'play'}
 		<i class="fa-solid fa-play" />
 	{:else if type == 'pause'}
