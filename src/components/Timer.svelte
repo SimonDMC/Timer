@@ -12,7 +12,6 @@
 
 	export let downScale: number = 1;
 	export let timerIndex: number;
-	export let shiftDown: boolean = false;
 	export let timerData: TimerData;
 
 	const dispatch = createEventDispatcher();
@@ -56,6 +55,13 @@
 			shiftDownClass = ' shift-small';
 		}
 		if (downScale == 3 && timerIndex <= 1) {
+			shiftDownClass = ' shift';
+		}
+	} else {
+		if (downScale == 2 && timerIndex <= 1) {
+			shiftDownClass = ' shift-small';
+		}
+		if (downScale == 3 && timerIndex <= 2) {
 			shiftDownClass = ' shift';
 		}
 	}
@@ -187,13 +193,10 @@
 	}
 </script>
 
-<div
-	class={`background${shiftDown && !mobile ? ' shift' : ''}${shiftDownClass}`}
-	style={sizeStyling}
->
+<div class={`background${shiftDownClass}`} style={sizeStyling}>
 	<h1
 		contenteditable
-		class={shiftDown && scaleW == 3 && timerIndex != 1 ? ' shifted' : ''}
+		class={shiftDownClass == ' shift' && scaleW == 3 && timerIndex != 1 ? ' shifted' : ''}
 		bind:innerHTML={timerName}
 		on:keydown={(e) => changeTimerName(e)}
 	>

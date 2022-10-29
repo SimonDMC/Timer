@@ -263,7 +263,6 @@
 					<Timer
 						downScale={boardSize}
 						timerIndex={i * boardSize + j}
-						shiftDown={i == 0}
 						timerData={getTimerData(i * boardSize + j)}
 						on:save={save}
 					/>
