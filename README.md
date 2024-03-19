@@ -6,7 +6,7 @@ Built with [SvelteKit](https://kit.svelte.dev) and deployed on [Vercel](https://
 
 ## Preview
 
-![Timer Preview](https://simondmc.com/media/timer-hero.png)
+![Timer Preview](https://simondmc.com/assets/imgs/covers/websites/timer-full.webp)
 
 ## Usage
 
